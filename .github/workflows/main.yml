@@ -25,10 +25,13 @@ jobs:
       - name: Convert Gemma 3n-E2B-it to ONNX
         run: |
           export HUGGING_FACE_HUB_TOKEN=${{ secrets.HF_TOKEN }}
-          node node_modules/@xenova/transformers/cli/convert.js \
+          CONVERT_JS=$(find node_modules/@xenova/transformers -type f -name convert.js | head -n 1)
+          echo "Using converter at $CONVERT_JS"
+          node "$CONVERT_JS" \
             --model google/gemma-3n-E2B-it \
             --quantize int8 \
             --output ./models/gemma-3n-E2B-it/
+            
 
       - name: Commit and push model files if changed
         run: |

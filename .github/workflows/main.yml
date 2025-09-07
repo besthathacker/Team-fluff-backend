@@ -1,0 +1,39 @@
+name: Build and Commit Gemma Model
+
+on:
+  workflow_dispatch:  # run manually when you want
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+
+      - name: Install transformers.js CLI
+        run: npm install -g @xenova/transformers
+
+      - name: Convert Gemma 3n-E2B-it to ONNX
+        run: |
+          export HUGGING_FACE_HUB_TOKEN=${{ secrets.HF_TOKEN }}
+          npx @xenova/transformers convert \
+            --model google/gemma-3n-E2B-it \
+            --quantize int8 \
+            --output ./models/gemma-3n-E2B-it/
+
+      - name: Commit and push model files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add models/gemma-3n-E2B-it
+          git commit -m "Add/Update Gemma 3n-E2B-it ONNX model"
+          git push

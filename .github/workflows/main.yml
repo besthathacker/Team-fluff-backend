@@ -1,7 +1,7 @@
 name: Build and Commit Gemma Model
 
 on:
-  workflow_dispatch:  # run manually when you want
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -19,19 +19,18 @@ jobs:
         with:
           node-version: "18"
 
-      - name: Install transformers.js
-        run: npm install @xenova/transformers
+      - name: Download converter script
+        run: |
+          mkdir -p tools
+          curl -L https://raw.githubusercontent.com/xenova/transformers.js/main/scripts/convert.js -o tools/convert.js
 
       - name: Convert Gemma 3n-E2B-it to ONNX
         run: |
           export HUGGING_FACE_HUB_TOKEN=${{ secrets.HF_TOKEN }}
-          CONVERT_JS=$(find node_modules/@xenova/transformers -type f -name convert.js | head -n 1)
-          echo "Using converter at $CONVERT_JS"
-          node "$CONVERT_JS" \
+          node tools/convert.js \
             --model google/gemma-3n-E2B-it \
             --quantize int8 \
             --output ./models/gemma-3n-E2B-it/
-            
 
       - name: Commit and push model files if changed
         run: |
